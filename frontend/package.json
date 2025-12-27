@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "test-api": "node scripts/test-fastapi.js"
   },
   "dependencies": {
     "@hello-pangea/dnd": "18.0.1",

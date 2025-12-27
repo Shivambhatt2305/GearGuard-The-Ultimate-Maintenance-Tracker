@@ -1,5 +1,5 @@
 // API Client for backend communication
-import { ApiResponse, AuthResponse, LoginRequest, SignupRequest } from "@/lib/types"
+import { ApiResponse, AuthResponse, LoginRequest, SignupRequest, User } from "@/lib/types"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -35,12 +35,16 @@ class ApiClient {
 
       const data: ApiResponse<T> = await response.json()
 
-      // Handle unauthorized
-      if (response.status === 401) {
+      // Handle unauthorized - 401 error response from backend
+      // Only redirect if NOT a login/signup request (to prevent page reload on failed auth)
+      if ((response.status === 401 || data.code === 401) && !endpoint.includes("/users/login") && !endpoint.includes("/users/signup")) {
         this.clearToken()
         // Redirect to login if needed
         if (typeof window !== "undefined") {
-          window.location.href = "/login"
+          // Don't force reload, let the app handle the auth state change
+          // window.location.href = "/login"
+
+          // Optionally dispatch an event if needed, but state update should handle it
         }
       }
 
@@ -99,7 +103,7 @@ class ApiClient {
     return response
   }
 
-  async getCurrentUser(): Promise<ApiResponse<any>> {
+  async getCurrentUser(): Promise<ApiResponse<User>> {
     const token = this.getToken()
     if (!token) {
       return {
@@ -109,7 +113,7 @@ class ApiClient {
         data: null,
       }
     }
-    return this.get("/api/v1/users/me")
+    return this.get<User>("/api/v1/users/me")
   }
 
   logout(): void {

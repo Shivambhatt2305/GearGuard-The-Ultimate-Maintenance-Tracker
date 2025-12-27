@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { DashboardShell } from "@/components/dashboard-shell"
+import { AuthProvider } from "./providers"
+
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -27,8 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <DashboardShell>{children}</DashboardShell>
+        <AuthProvider>
+          <DashboardShell>{children}</DashboardShell>
+        </AuthProvider>
       </body>
     </html>
-  )
+  );
 }
