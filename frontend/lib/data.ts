@@ -44,6 +44,13 @@ export interface Equipment {
   warrantyExpiry: string
   location: string
   workCenterId?: string
+  usedBy?: string
+  maintenanceTeam?: string
+  assignedDate?: string
+  employee?: string
+  scrapDate?: string
+  workCenter?: string
+  description?: string
   maintenanceHistory?: string[] // Array of maintenance log IDs
   totalMaintenanceCost?: number
   lastMaintenanceDate?: string
@@ -170,6 +177,14 @@ export interface WorkCenter {
   capacity: number
   efficiency: number
   oeeTarget: number
+}
+
+// Equipment Category
+export interface EquipmentCategory {
+  id: string
+  name: string
+  responsible: string
+  company: string
 }
 
 // Initial data
@@ -335,6 +350,13 @@ export const WORK_CENTERS: WorkCenter[] = [
     efficiency: 95.0,
     oeeTarget: 92.0,
   },
+]
+
+// Equipment Categories
+export const EQUIPMENT_CATEGORIES: EquipmentCategory[] = [
+  { id: "EC-001", name: "Computers", responsible: "OdooBot", company: "My Company (San Francisco)" },
+  { id: "EC-002", name: "Software", responsible: "OdooBot", company: "My Company (San Francisco)" },
+  { id: "EC-003", name: "Monitors", responsible: "Mitchell Admin", company: "My Company (San Francisco)" },
 ]
 
 // Spare Parts Inventory
