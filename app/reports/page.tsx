@@ -62,6 +62,8 @@ const getRequestsByStage = () => {
   ]
 }
 
+
+
 const getRequestsByPriority = () => {
   const priorityCounts: { [key: string]: number } = { High: 0, Medium: 0, Low: 0 }
   maintenanceRequests.forEach((req) => {
@@ -322,3 +324,4 @@ export default function ReportsPage() {
     </div>
   )
 }
+
