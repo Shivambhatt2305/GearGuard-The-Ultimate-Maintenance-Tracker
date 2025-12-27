@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 // Team member type
 type TeamMember = {
   id: string
@@ -32,6 +33,7 @@ type TeamMember = {
   status: "Active" | "Inactive"
   teamId: string
 }
+
 // Team type
 type Team = {
   id: string
