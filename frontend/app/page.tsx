@@ -24,16 +24,26 @@ import {
   getOverdueMaintenance,
   getUpcomingMaintenance 
 } from "@/lib/data"
+import { formatDate, formatNumber } from "@/lib/utils"
 
-const recentMaintenanceReports = MAINTENANCE_LOGS.slice(0, 5).map(log => ({
-  id: log.id,
-  subject: log.workDescription.substring(0, 50) + "...",
-  equipment: log.assetName,
-  category: log.maintenanceType,
-  staff: log.technicianName,
-  status: log.status,
-  date: log.maintenanceDate,
-}))
+// Helper lookups for dashboard table
+const allMembers = INITIAL_TEAMS.flatMap(t => t.members)
+const getMemberNameByLogin = (loginId: string) => allMembers.find(m => m.loginId === loginId)?.name ?? loginId
+
+const recentMaintenanceReports = MAINTENANCE_LOGS.slice(0, 5).map(log => {
+  const equipment = EQUIPMENT_DATABASE.find(eq => eq.id === log.assetId)
+  const firstSentence = log.workDescription.split(".")[0]
+  return {
+    id: log.id,
+    subject: firstSentence.length > 0 ? firstSentence : log.workDescription.substring(0, 50) + "...",
+    employee: getMemberNameByLogin(log.createdBy),
+    technician: log.technicianName,
+    category: equipment?.category ?? log.maintenanceType,
+    stage: log.status === "Pending" ? "New Request" : log.status,
+    company: equipment?.company ?? "—",
+    date: log.maintenanceDate,
+  }
+})
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -122,7 +132,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{EQUIPMENT_DATABASE.length} Units</div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Cost: ${totalMaintenanceCost.toLocaleString()}
+              Cost: ${formatNumber(totalMaintenanceCost)}
             </p>
           </CardContent>
         </Card>
@@ -143,40 +153,42 @@ export default function DashboardPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Subject</TableHead>
-                <TableHead>Equipment</TableHead>
+                <TableHead>Subjects</TableHead>
+                <TableHead>Employee</TableHead>
+                <TableHead>Technician</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Staff</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead>Company</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentMaintenanceReports.map((report) => (
                 <TableRow key={report.id}>
                   <TableCell className="font-medium">{report.subject}</TableCell>
-                  <TableCell>{report.equipment}</TableCell>
+                  <TableCell>{report.employee}</TableCell>
+                  <TableCell>{report.technician}</TableCell>
                   <TableCell>{report.category}</TableCell>
-                  <TableCell>{report.staff}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={
-                        report.status === "Pending" 
+                        report.stage === "New Request" 
                           ? "secondary" 
-                          : report.status === "In Progress" 
+                          : report.stage === "In Progress" 
                           ? "default" 
                           : "outline"
                       }
                       className={
-                        report.status === "Pending" 
+                        report.stage === "New Request" 
                           ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30" 
-                          : report.status === "In Progress"
+                          : report.stage === "In Progress"
                           ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
                           : "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30"
                       }
                     >
-                      {report.status}
+                      {report.stage}
                     </Badge>
                   </TableCell>
+                  <TableCell>{report.company}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -209,7 +221,7 @@ export default function DashboardPage() {
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-semibold">{notification.title}</p>
                   <p className="text-xs text-muted-foreground">{notification.message}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(notification.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(notification.createdAt)}</p>
                 </div>
                 <Badge variant={notification.priority === "High" ? "destructive" : "secondary"} className="text-xs">
                   {notification.priority}
