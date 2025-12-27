@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [notifyEmail, setNotifyEmail] = React.useState(true)
   const [notifyDesktop, setNotifyDesktop] = React.useState(true)
   const [notifyCritical, setNotifyCritical] = React.useState(true)
+
   const handleSave = () => {
     // For now, just simulate a save action
     console.log("Settings saved", {
@@ -30,12 +31,14 @@ export default function SettingsPage() {
       notifyCritical,
     })
   }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage preferences and organization settings.</p>
       </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-border/50 bg-card/30">
           <CardHeader>
@@ -56,6 +59,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
         <Card className="border-border/50 bg-card/30">
           <CardHeader>
             <CardTitle>Theme & Display</CardTitle>
