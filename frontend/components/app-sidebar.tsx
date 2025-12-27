@@ -9,6 +9,8 @@ import {
   Settings,
   BarChart3,
   Factory,
+  Package,
+  Briefcase,
 } from "lucide-react"
 import {
   Sidebar,
@@ -35,6 +37,11 @@ const assetItems = [
   { icon: Box, label: "Equipment", href: "/equipment" },
   { icon: Factory, label: "Work Centers", href: "/work-centers" },
   { icon: Users, label: "Maintenance Teams", href: "/teams" },
+]
+
+const inventoryItems = [
+  { icon: Package, label: "Inventory", href: "/inventory" },
+  { icon: Briefcase, label: "Vendors", href: "/vendors" },
 ]
 
 const analysisItems = [
@@ -86,6 +93,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {assetItems.map((item) => (
+                <NavItem key={item.href} item={item} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Inventory & Vendors</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {inventoryItems.map((item) => (
                 <NavItem key={item.href} item={item} />
               ))}
             </SidebarMenu>

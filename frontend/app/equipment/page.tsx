@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Search, Filter, Plus, Wrench, AlertCircle } from "lucide-react"
 import {
   Dialog,
@@ -13,10 +14,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { INITIAL_TEAMS, type Equipment } from "@/lib/data"
 
 // <CHANGE> Added maintenance tasks data structure to track requests per equipment
 const maintenanceRequests = [
@@ -140,6 +143,27 @@ function EquipmentContent() {
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [equipmentList, setEquipmentList] = useState(equipment)
+  
+  // Add Equipment Form State
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    company: "",
+    usedBy: "Employee",
+    maintenanceTeam: "",
+    assignedDate: new Date().toISOString().split("T")[0],
+    technician: "",
+    employee: "",
+    scrapDate: "",
+    location: "",
+    workCenter: "",
+    description: "",
+    serialNumber: "",
+    purchaseDate: "",
+    warrantyExpiry: "",
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>("")
@@ -169,14 +193,56 @@ function EquipmentContent() {
     setIsDetailDialogOpen(true)
   }
 
-  const selectedEquipmentData = equipment.find((eq) => eq.id === selectedEquipment)
+  const handleAddEquipment = () => {
+    if (!formData.name || !formData.category || !formData.company) {
+      alert("Please fill in all required fields (Name, Category, and Company)")
+      return
+    }
+
+    const newEquipment = {
+      id: `EQ-${String(equipmentList.length + 1).padStart(3, "0")}`,
+      name: formData.name,
+      serialNumber: formData.serialNumber || `SN-${Date.now()}`,
+      category: formData.category,
+      status: "Operational" as const,
+      technician: formData.technician || formData.employee || "Unassigned",
+      company: formData.company,
+      purchaseDate: formData.purchaseDate || formData.assignedDate,
+      warrantyExpiry: formData.warrantyExpiry || "",
+      location: formData.location || "Not specified",
+    }
+
+    setEquipmentList([...equipmentList, newEquipment])
+    setIsAddDialogOpen(false)
+    
+    // Reset form
+    setFormData({
+      name: "",
+      category: "",
+      company: "",
+      usedBy: "Employee",
+      maintenanceTeam: "",
+      assignedDate: new Date().toISOString().split("T")[0],
+      technician: "",
+      employee: "",
+      scrapDate: "",
+      location: "",
+      workCenter: "",
+      description: "",
+      serialNumber: "",
+      purchaseDate: "",
+      warrantyExpiry: "",
+    })
+  }
+
+  const selectedEquipmentData = equipmentList.find((eq) => eq.id === selectedEquipment)
   const selectedRequests = selectedEquipment ? getEquipmentRequests(selectedEquipment) : []
 
   // Derived filter lists
-  const categoryOptions = Array.from(new Set(equipment.map((e) => e.category)))
-  const statusOptions = Array.from(new Set(equipment.map((e) => e.status)))
-  const technicianOptions = Array.from(new Set(equipment.map((e) => e.technician)))
-  const companyOptions = Array.from(new Set(equipment.map((e) => e.company)))
+  const categoryOptions = Array.from(new Set(equipmentList.map((e) => e.category)))
+  const statusOptions = Array.from(new Set(equipmentList.map((e) => e.status)))
+  const technicianOptions = Array.from(new Set(equipmentList.map((e) => e.technician)))
+  const companyOptions = Array.from(new Set(equipmentList.map((e) => e.company)))
 
   const clearFilters = () => {
     setFilterCategory("")
@@ -185,7 +251,7 @@ function EquipmentContent() {
     setFilterCompany("")
   }
 
-  const filteredEquipment = equipment.filter((item) => {
+  const filteredEquipment = equipmentList.filter((item) => {
     const matchesSearch = searchQuery
       ? [item.name, item.id, item.category, item.technician, item.company]
           .join(" ")
@@ -208,7 +274,7 @@ function EquipmentContent() {
           <h1 className="text-2xl font-bold">Equipment Assets</h1>
           <p className="text-sm text-muted-foreground">Manage and track your industrial assets.</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Equipment
         </Button>
@@ -538,6 +604,239 @@ function EquipmentContent() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Equipment Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Equipment</DialogTitle>
+            <DialogDescription>Fill in the equipment details to add it to your asset inventory</DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Name */}
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Samsung Monitor 15"
+                />
+              </div>
+
+              {/* Technician */}
+              <div className="grid gap-2">
+                <Label htmlFor="technician">Technician</Label>
+                <Select value={formData.technician} onValueChange={(value) => setFormData({ ...formData, technician: value })}>
+                  <SelectTrigger id="technician">
+                    <SelectValue placeholder="Select technician" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INITIAL_TEAMS.flatMap(team => 
+                      team.members.filter(m => m.status === "Active").map(member => (
+                        <SelectItem key={member.id} value={member.name}>
+                          {member.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Equipment Category */}
+              <div className="grid gap-2">
+                <Label htmlFor="category">Equipment Category *</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Monitors">Monitors</SelectItem>
+                    <SelectItem value="Laptops">Laptops</SelectItem>
+                    <SelectItem value="Servers">Servers</SelectItem>
+                    <SelectItem value="Printers">Printers</SelectItem>
+                    <SelectItem value="Production Equipment">Production Equipment</SelectItem>
+                    <SelectItem value="Material Handling">Material Handling</SelectItem>
+                    <SelectItem value="HVAC Systems">HVAC Systems</SelectItem>
+                    <SelectItem value="Safety Equipment">Safety Equipment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Employee */}
+              <div className="grid gap-2">
+                <Label htmlFor="employee">Employee</Label>
+                <Select value={formData.employee} onValueChange={(value) => setFormData({ ...formData, employee: value })}>
+                  <SelectTrigger id="employee">
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INITIAL_TEAMS.flatMap(team => 
+                      team.members.map(member => (
+                        <SelectItem key={member.id} value={member.name}>
+                          {member.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Company */}
+              <div className="grid gap-2">
+                <Label htmlFor="company">Company *</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  placeholder="e.g., My Company (San Francisco)"
+                />
+              </div>
+
+              {/* Scrap Date */}
+              <div className="grid gap-2">
+                <Label htmlFor="scrapDate">Scrap Date</Label>
+                <Input
+                  id="scrapDate"
+                  type="date"
+                  value={formData.scrapDate}
+                  onChange={(e) => setFormData({ ...formData, scrapDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Used By</Label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="usedByEmployee"
+                    checked={formData.usedBy === "Employee"}
+                    onChange={() => setFormData({ ...formData, usedBy: "Employee" })}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="usedByEmployee" className="font-normal cursor-pointer">Employee</Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Used in location */}
+              <div className="grid gap-2">
+                <Label htmlFor="location">Used in location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="e.g., Building A, Floor 2"
+                />
+              </div>
+
+              {/* Maintenance Team */}
+              <div className="grid gap-2">
+                <Label htmlFor="maintenanceTeam">Maintenance Team</Label>
+                <Select value={formData.maintenanceTeam} onValueChange={(value) => setFormData({ ...formData, maintenanceTeam: value })}>
+                  <SelectTrigger id="maintenanceTeam">
+                    <SelectValue placeholder="Select team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INITIAL_TEAMS.map(team => (
+                      <SelectItem key={team.id} value={team.name}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Work Center */}
+              <div className="grid gap-2">
+                <Label htmlFor="workCenter">Work Center</Label>
+                <Input
+                  id="workCenter"
+                  value={formData.workCenter}
+                  onChange={(e) => setFormData({ ...formData, workCenter: e.target.value })}
+                  placeholder="Work center code"
+                />
+              </div>
+
+              {/* Assigned Date */}
+              <div className="grid gap-2">
+                <Label htmlFor="assignedDate">Assigned Date</Label>
+                <Input
+                  id="assignedDate"
+                  type="date"
+                  value={formData.assignedDate}
+                  onChange={(e) => setFormData({ ...formData, assignedDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Additional Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="serialNumber">Serial Number</Label>
+                <Input
+                  id="serialNumber"
+                  value={formData.serialNumber}
+                  onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                  placeholder="e.g., SN-2024-001"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="purchaseDate">Purchase Date</Label>
+                <Input
+                  id="purchaseDate"
+                  type="date"
+                  value={formData.purchaseDate}
+                  onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="warrantyExpiry">Warranty Expiry</Label>
+              <Input
+                id="warrantyExpiry"
+                type="date"
+                value={formData.warrantyExpiry}
+                onChange={(e) => setFormData({ ...formData, warrantyExpiry: e.target.value })}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Additional notes or description"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddEquipment}>
+              Add Equipment
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -19,30 +19,9 @@ yarn-error.log*
 # env files
 .env*
 
-
-
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-
-
-#  Python 
-
-# ===============================
-# Python
-# ===============================
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-# ===============================
-# Virtual Environments
-# ===============================
-env/
-venv/
-.venv/
