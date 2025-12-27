@@ -1,12 +1,23 @@
 "use client"
 
+import type React from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ShieldCheck } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LoginForm } from "@/components/auth/login-form"
-import { SignupForm } from "@/components/auth/signup-form"
-
 export default function LoginPage() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    // Simulate auth
+    setTimeout(() => {
+      router.push("/")
+      setIsLoading(false)
+    }, 1000)
+  }
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-[400px] space-y-6">
