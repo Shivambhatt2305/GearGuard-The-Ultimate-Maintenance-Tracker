@@ -20,7 +20,6 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
