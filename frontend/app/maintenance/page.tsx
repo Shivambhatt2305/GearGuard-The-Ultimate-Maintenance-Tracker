@@ -31,6 +31,7 @@ import {
   getTeamForEquipment,
   getActiveMembers,
 } from "@/lib/data"
+
 const STAGES = [
   { id: "new", name: "New Request", icon: Plus, color: "text-primary" },
   { id: "in-progress", name: "In Progress", icon: Clock, color: "text-chart-2" },
@@ -132,6 +133,7 @@ const initialWorkOrders: WorkOrder[] = [
     createdAt: "2025-12-21",
   },
 ]
+
 function MaintenanceKanbanContent() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialWorkOrders)
   const [searchQuery, setSearchQuery] = useState("")
@@ -165,8 +167,10 @@ function MaintenanceKanbanContent() {
   const selectedEquipment = formData.equipmentId
     ? EQUIPMENT_DATABASE.find((eq) => eq.id === formData.equipmentId)
     : null
+
   const selectedTeam = formData.teamId ? INITIAL_TEAMS.find((t) => t.id === formData.teamId) : null
   const availableMembers = selectedTeam ? getActiveMembers(selectedTeam.id) : []
+
   const filteredOrders = useMemo(() => {
     return workOrders.filter(
       (order) =>
@@ -175,18 +179,22 @@ function MaintenanceKanbanContent() {
         order.teamName.toLowerCase().includes(searchQuery.toLowerCase()),
     )
   }, [workOrders, searchQuery])
+
   const handleCreateRequest = () => {
     if (!formData.subject || (formData.requestType === "Equipment" && !formData.equipmentId) || !formData.teamId || !selectedTeam) {
       alert("Please fill in all required fields (Subject, " + (formData.requestType === "Equipment" ? "Equipment" : "Work Center") + ", and Team)")
       return
     }
+
     if (formData.type === "Preventive" && !formData.scheduledDate) {
       alert("Scheduled date is required for Preventive Maintenance")
       return
     }
+
     const scheduledDateTime = formData.scheduledDate && formData.scheduledTime 
       ? `${formData.scheduledDate} ${formData.scheduledTime}` 
       : formData.scheduledDate
+
     const newWorkOrder: WorkOrder = {
       id: `WO-${String(workOrders.length + 1).padStart(3, '0')}`,
       title: formData.subject,
@@ -206,6 +214,7 @@ function MaintenanceKanbanContent() {
       createdAt: formData.requestDate,
       notes: formData.notes,
     }
+
     setWorkOrders([...workOrders, newWorkOrder])
     setIsDialogOpen(false)
     setFormData({
@@ -229,12 +238,17 @@ function MaintenanceKanbanContent() {
       estimatedHours: "",
     })
   }
+
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return
+
     const { source, destination, draggableId } = result
+
     if (source.droppableId === destination.droppableId) return
+
     const newStatus = destination.droppableId as WorkOrder["status"]
     const order = workOrders.find((o) => o.id === draggableId)
+
     if (newStatus === "scrap" && order) {
       setScrapConfirmation({
         show: true,
@@ -243,6 +257,7 @@ function MaintenanceKanbanContent() {
       })
     } else {
       const updateData: Partial<WorkOrder> = { status: newStatus }
+      
       if (newStatus === "in-progress" && !order?.startDate) {
         updateData.startDate = new Date().toISOString().split("T")[0]
       } else if (newStatus === "repaired" && !order?.completedDate) {
