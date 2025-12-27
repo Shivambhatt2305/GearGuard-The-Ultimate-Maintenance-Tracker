@@ -15,6 +15,8 @@ export function SignupForm() {
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
+    user_role: "",
+    department: "",
     password: "",
     confirmPassword: "",
   })
@@ -93,6 +95,28 @@ export function SignupForm() {
               onChange={handleChange}
               disabled={isLoading}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="user_role">User Role</Label>
+            <Input
+              id="user_role"
+              name="user_role"
+              placeholder="Employee"
+              value={formData.user_role}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="department">Department</Label>
+            <Input
+              id="department"
+              name="department"
+              placeholder="Engineering"
+              value={formData.department}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
