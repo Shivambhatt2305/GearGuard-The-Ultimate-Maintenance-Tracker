@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { INITIAL_TEAMS } from "@/lib/data"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -51,6 +52,7 @@ const analysisItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const currentUser = INITIAL_TEAMS[0].members[0]
 
   const NavItem = ({ item }: { item: (typeof navItems)[0] }) => (
     <SidebarMenuItem>
@@ -124,15 +126,14 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <div className="flex items-center gap-3 px-1 group-data-[collapsible=icon]:justify-center">
           <div className="size-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold shrink-0">
-            JD
+            {currentUser.name.split(" ").map((n) => n[0]).join("")}
           </div>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-medium truncate">John Doe</span>
-            <span className="text-[10px] text-muted-foreground truncate uppercase font-bold">Maintenance Lead</span>
+            <span className="text-sm font-medium truncate">{currentUser.name}</span>
+            <span className="text-[10px] text-muted-foreground truncate uppercase font-bold">{currentUser.role}</span>
           </div>
         </div>
       </SidebarFooter>
     </Sidebar>
   )
 }
-
