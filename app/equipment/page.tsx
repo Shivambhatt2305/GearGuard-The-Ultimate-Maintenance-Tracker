@@ -33,66 +33,98 @@ const equipment = [
   {
     id: "EQ-101",
     name: 'Samsung Monitor 15"',
+    serialNumber: "SM-2024-001",
     category: "Monitors",
     status: "Operational",
     technician: "Mitchell Admin",
     company: "GearGuard Corp",
+    purchaseDate: "2022-03-15",
+    warrantyExpiry: "2025-03-15",
+    location: "Building A, Floor 2, Desk 201",
   },
   {
     id: "EQ-102",
     name: "Acer Laptop X5",
+    serialNumber: "AL-2024-002",
     category: "Laptops",
     status: "Scrapped",
     technician: "Abigail Peterson",
     company: "GearGuard Corp",
+    purchaseDate: "2021-06-20",
+    warrantyExpiry: "2024-06-20",
+    location: "Storage Room, Shelf B3",
   },
   {
     id: "EQ-103",
     name: "Dell Server R740",
+    serialNumber: "DS-2024-003",
     category: "Servers",
     status: "Maintenance",
     technician: "Mitchell Admin",
     company: "DataCenter Ltd",
+    purchaseDate: "2020-09-10",
+    warrantyExpiry: "2026-09-10",
+    location: "Data Center, Rack 5, Unit 3",
   },
   {
     id: "EQ-104",
     name: "HP Laserjet Pro",
+    serialNumber: "HP-2024-004",
     category: "Printers",
     status: "Operational",
     technician: "Abigail Peterson",
     company: "GearGuard Corp",
+    purchaseDate: "2022-11-05",
+    warrantyExpiry: "2025-11-05",
+    location: "Building B, Floor 1, Print Room",
   },
   {
     id: "EQ-105",
     name: "Assembly Line 02",
+    serialNumber: "AL-2024-005",
     category: "Production Equipment",
     status: "Maintenance",
     technician: "Max Foster",
     company: "GearGuard Corp",
+    purchaseDate: "2019-01-22",
+    warrantyExpiry: "2027-01-22",
+    location: "Factory Floor, Zone C",
   },
   {
     id: "EQ-106",
     name: "Forklift H2",
+    serialNumber: "FK-2024-006",
     category: "Material Handling",
     status: "Operational",
     technician: "Mitchell Admin",
     company: "GearGuard Corp",
+    purchaseDate: "2020-04-18",
+    warrantyExpiry: "2026-04-18",
+    location: "Warehouse, Level 1, Section A",
   },
   {
     id: "EQ-107",
     name: "HVAC Unit PM-04",
+    serialNumber: "HV-2024-007",
     category: "HVAC Systems",
     status: "Under Repair",
     technician: "Max Foster",
     company: "GearGuard Corp",
+    purchaseDate: "2018-07-30",
+    warrantyExpiry: "2024-07-30",
+    location: "Building A, Roof, Unit 04",
   },
   {
     id: "EQ-108",
     name: "CNC Machine X1",
+    serialNumber: "CN-2024-008",
     category: "Production Equipment",
     status: "Operational",
     technician: "Mitchell Admin",
     company: "GearGuard Corp",
+    purchaseDate: "2021-02-14",
+    warrantyExpiry: "2027-02-14",
+    location: "Factory Floor, Zone A",
   },
 ]
 
@@ -107,6 +139,7 @@ export default function EquipmentPage() {
 function EquipmentContent() {
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>("")
@@ -129,6 +162,11 @@ function EquipmentContent() {
   const handleViewMaintenance = (equipmentId: string) => {
     setSelectedEquipment(equipmentId)
     setIsMaintenanceDialogOpen(true)
+  }
+
+  const handleViewDetails = (equipmentId: string) => {
+    setSelectedEquipment(equipmentId)
+    setIsDetailDialogOpen(true)
   }
 
   const selectedEquipmentData = equipment.find((eq) => eq.id === selectedEquipment)
@@ -246,20 +284,30 @@ function EquipmentContent() {
                     <TableCell className="text-sm text-muted-foreground">{item.company}</TableCell>
                     <TableCell className="text-right pr-6">
                       {/* <CHANGE> Smart button showing maintenance requests count */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 relative"
-                        onClick={() => handleViewMaintenance(item.id)}
-                      >
-                        <Wrench className="h-3.5 w-3.5" />
-                        <span>Maintenance</span>
-                        {openCount > 0 && (
-                          <Badge className="ml-1 h-5 min-w-5 bg-primary text-primary-foreground border-none px-1.5">
-                            {openCount}
-                          </Badge>
-                        )}
-                      </Button>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-2 text-muted-foreground hover:text-foreground"
+                          onClick={() => handleViewDetails(item.id)}
+                        >
+                          <span className="text-xs">Details</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 relative"
+                          onClick={() => handleViewMaintenance(item.id)}
+                        >
+                          <Wrench className="h-3.5 w-3.5" />
+                          <span>Maintenance</span>
+                          {openCount > 0 && (
+                            <Badge className="ml-1 h-5 min-w-5 bg-primary text-primary-foreground border-none px-1.5">
+                              {openCount}
+                            </Badge>
+                          )}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )
@@ -405,6 +453,91 @@ function EquipmentContent() {
               ))
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Equipment Details Dialog */}
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Equipment Details</DialogTitle>
+            <DialogDescription>
+              {selectedEquipmentData ? `Details for ${selectedEquipmentData.name}` : "Equipment details"}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEquipmentData && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Equipment Name</p>
+                    <p className="text-sm font-medium mt-1">{selectedEquipmentData.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Serial Number</p>
+                    <p className="text-sm font-mono font-medium mt-1">{selectedEquipmentData.serialNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Equipment ID</p>
+                    <p className="text-sm font-mono font-medium mt-1">{selectedEquipmentData.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Category</p>
+                    <p className="text-sm font-medium mt-1">{selectedEquipmentData.category}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Purchase & Warranty */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Purchase & Warranty</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Purchase Date</p>
+                    <p className="text-sm font-medium mt-1">
+                      {new Date(selectedEquipmentData.purchaseDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Warranty Expiry</p>
+                    <p className={`text-sm font-medium mt-1 ${new Date(selectedEquipmentData.warrantyExpiry) < new Date() ? "text-destructive" : "text-chart-2"}`}>
+                      {new Date(selectedEquipmentData.warrantyExpiry).toLocaleDateString()}
+                      {new Date(selectedEquipmentData.warrantyExpiry) < new Date() && <span className="ml-2 text-xs">(Expired)</span>}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Location</h3>
+                <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+                  <p className="text-sm font-medium">{selectedEquipmentData.location}</p>
+                </div>
+              </div>
+
+              {/* Assigned To */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Assigned Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Primary Technician</p>
+                    <p className="text-sm font-medium mt-1">{selectedEquipmentData.technician}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Company</p>
+                    <p className="text-sm font-medium mt-1">{selectedEquipmentData.company}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">Status</p>
+                    <Badge className="mt-1">{selectedEquipmentData.status}</Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
