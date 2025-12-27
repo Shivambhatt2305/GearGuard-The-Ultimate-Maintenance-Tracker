@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
