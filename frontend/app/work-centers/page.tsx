@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Factory, Activity, Gauge } from "lucide-react"
 
+
 const workCenters = [
   {
     code: "WC-01",
