@@ -91,11 +91,3 @@ Contributions are welcome. Please open an issue or a pull request with a clear d
 - Maitri Joshi
 
 ---
-
-## �📄 License
-
-No license file is included by default. Add a `LICENSE` to define usage permissions (e.g., MIT).
-
----
-
-If you'd like, I can add a basic `LICENSE` (MIT) and a `CONTRIBUTING.md` template — tell me if you want those. 💡
