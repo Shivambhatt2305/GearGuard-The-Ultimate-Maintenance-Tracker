@@ -1,8 +1,51 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, ArrowUpRight, ArrowDownRight, Activity, Box, ClipboardList, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow 
+} from "@/components/ui/table"
+import { Plus, ArrowUpRight, ArrowDownRight, Activity, Box, ClipboardList, AlertCircle, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { INITIAL_TEAMS } from "@/lib/data"
+
+const recentMaintenanceReports = [
+  {
+    id: 1,
+    subject: "Test activity",
+    equipment: "Mitchell Admin",
+    category: "Ava Foster",
+    staff: "computer",
+    status: "New",
+  },
+  {
+    id: 2,
+    subject: "Scheduled inspection",
+    equipment: "CNC Machine X1",
+    category: "Production Equipment",
+    staff: "John Smith",
+    status: "In Progress",
+  },
+  {
+    id: 3,
+    subject: "HVAC maintenance",
+    equipment: "HVAC Unit PM-04",
+    category: "HVAC Systems",
+    staff: "Max Foster",
+    status: "Completed",
+  },
+]
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const totalActiveMembers = INITIAL_TEAMS.flatMap(t => t.members).filter(m => m.status === "Active").length
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -14,54 +57,62 @@ export default function DashboardPage() {
           <Button variant="outline" size="sm">
             Download Report
           </Button>
-          <Button size="sm" className="gap-2">
+          <Button size="sm" className="gap-2" onClick={() => router.push('/maintenance')}>
             <Plus className="h-4 w-4" />
             New Request
           </Button>
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <Card className="bg-destructive/5 backdrop-blur-sm border-destructive/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Critical Equipment</CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5 Assets</div>
-            <div className="flex items-center pt-1 text-xs text-destructive">
-              <ArrowUpRight className="mr-1 h-3 w-3" />
-              +20% from last week
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground font-medium">Health: {"<"} 30%</p>
+            <div className="text-2xl font-bold">5 Units</div>
+            <p className="mt-2 text-xs text-destructive font-semibold">(Health {"<"} 30%)</p>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="px-0 h-auto text-xs mt-2 text-destructive hover:text-destructive/80"
+              onClick={() => router.push('/equipment')}
+            >
+              View Critical Assets →
+            </Button>
           </CardContent>
         </Card>
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <Card className="bg-primary/5 backdrop-blur-sm border-primary/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Technician Load</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">85% Utilized</div>
-            <div className="flex items-center pt-1 text-xs text-primary">
-              <ArrowDownRight className="mr-1 h-3 w-3" />
-              -5% improvement
+            <p className="mt-2 text-xs text-primary font-semibold">(Assign Carefully)</p>
+            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{totalActiveMembers} active members</span>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground font-medium">Design Capacity</p>
           </CardContent>
         </Card>
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <Card className="bg-chart-2/5 backdrop-blur-sm border-chart-2/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Open Requests</CardTitle>
             <ClipboardList className="h-4 w-4 text-chart-2" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12 Pending</div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              <span className="text-chart-2 font-bold">3 Overdue</span> | 9 within SLA
+            <p className="mt-1 text-xs">
+              <span className="text-destructive font-semibold">3 Overdue</span>
             </p>
-            <div className="mt-3 h-1 w-full bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-chart-2 w-3/4" />
-            </div>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="px-0 h-auto text-xs mt-2 text-chart-2 hover:text-chart-2/80"
+              onClick={() => router.push('/maintenance')}
+            >
+              View Workflow →
+            </Button>
           </CardContent>
         </Card>
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -75,6 +126,62 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Maintenance Reports</CardTitle>
+            <CardDescription>Recent maintenance activities and their status</CardDescription>
+          </div>
+          <Button size="sm" className="gap-2" onClick={() => router.push('/maintenance')}>
+            <Plus className="h-4 w-4" />
+            New Request
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Subject</TableHead>
+                <TableHead>Equipment</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Staff</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentMaintenanceReports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.subject}</TableCell>
+                  <TableCell>{report.equipment}</TableCell>
+                  <TableCell>{report.category}</TableCell>
+                  <TableCell>{report.staff}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={
+                        report.status === "New" 
+                          ? "secondary" 
+                          : report.status === "In Progress" 
+                          ? "default" 
+                          : "outline"
+                      }
+                      className={
+                        report.status === "New" 
+                          ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30" 
+                          : report.status === "In Progress"
+                          ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                          : ""
+                      }
+                    >
+                      {report.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4 border-border/50 bg-card/30">
