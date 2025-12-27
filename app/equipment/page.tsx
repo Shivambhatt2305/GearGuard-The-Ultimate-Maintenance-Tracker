@@ -1,0 +1,290 @@
+"use client"
+
+import { Suspense, useState } from "react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Search, Filter, Plus, Wrench, AlertCircle } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+// <CHANGE> Added maintenance tasks data structure to track requests per equipment
+const maintenanceRequests = [
+  { id: "1", equipmentId: "EQ-107", title: "AC Unit Leakage", stage: "new", priority: "High" },
+  { id: "2", equipmentId: "EQ-105", title: "Conveyor Belt Calibration", stage: "in-progress", priority: "Medium" },
+  { id: "3", equipmentId: "EQ-106", title: "Hydraulic Fluid Replacement", stage: "new", priority: "Low" },
+  { id: "4", equipmentId: "EQ-102", title: "Laptop Screen Malfunction", stage: "scrap", priority: "High" },
+  { id: "5", equipmentId: "EQ-108", title: "Annual Safety Check", stage: "repaired", priority: "Medium" },
+  { id: "6", equipmentId: "EQ-101", title: "Monitor Display Issue", stage: "new", priority: "Medium" },
+  { id: "7", equipmentId: "EQ-103", title: "Server Maintenance", stage: "in-progress", priority: "High" },
+]
+
+const equipment = [
+  {
+    id: "EQ-101",
+    name: 'Samsung Monitor 15"',
+    category: "Monitors",
+    status: "Operational",
+    technician: "Mitchell Admin",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-102",
+    name: "Acer Laptop X5",
+    category: "Laptops",
+    status: "Scrapped",
+    technician: "Abigail Peterson",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-103",
+    name: "Dell Server R740",
+    category: "Servers",
+    status: "Maintenance",
+    technician: "Mitchell Admin",
+    company: "DataCenter Ltd",
+  },
+  {
+    id: "EQ-104",
+    name: "HP Laserjet Pro",
+    category: "Printers",
+    status: "Operational",
+    technician: "Abigail Peterson",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-105",
+    name: "Assembly Line 02",
+    category: "Production Equipment",
+    status: "Maintenance",
+    technician: "Max Foster",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-106",
+    name: "Forklift H2",
+    category: "Material Handling",
+    status: "Operational",
+    technician: "Mitchell Admin",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-107",
+    name: "HVAC Unit PM-04",
+    category: "HVAC Systems",
+    status: "Under Repair",
+    technician: "Max Foster",
+    company: "GearGuard Corp",
+  },
+  {
+    id: "EQ-108",
+    name: "CNC Machine X1",
+    category: "Production Equipment",
+    status: "Operational",
+    technician: "Mitchell Admin",
+    company: "GearGuard Corp",
+  },
+]
+
+export default function EquipmentPage() {
+  return (
+    <Suspense fallback={null}>
+      <EquipmentContent />
+    </Suspense>
+  )
+}
+
+function EquipmentContent() {
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
+
+  // <CHANGE> Function to get open maintenance requests count for equipment
+  const getOpenRequestsCount = (equipmentId: string) => {
+    return maintenanceRequests.filter(
+      (req) => req.equipmentId === equipmentId && req.stage !== "repaired" && req.stage !== "scrap"
+    ).length
+  }
+
+  // <CHANGE> Function to get all requests for selected equipment
+  const getEquipmentRequests = (equipmentId: string) => {
+    return maintenanceRequests.filter((req) => req.equipmentId === equipmentId)
+  }
+
+  const handleViewMaintenance = (equipmentId: string) => {
+    setSelectedEquipment(equipmentId)
+    setIsMaintenanceDialogOpen(true)
+  }
+
+  const selectedEquipmentData = equipment.find((eq) => eq.id === selectedEquipment)
+  const selectedRequests = selectedEquipment ? getEquipmentRequests(selectedEquipment) : []
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Equipment Assets</h1>
+          <p className="text-sm text-muted-foreground">Manage and track your industrial assets.</p>
+        </div>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Equipment
+        </Button>
+      </div>
+
+      <Card className="border-border/50 bg-card/30">
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+          <div className="relative w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search assets..." className="pl-9 bg-muted/30 border-none" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="px-0">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="pl-6">Equipment Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Primary Technician</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead className="w-[140px] text-right pr-6">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {equipment.map((item) => {
+                const openCount = getOpenRequestsCount(item.id)
+                return (
+                  <TableRow key={item.id} className="border-border/50 group transition-colors hover:bg-accent/20">
+                    <TableCell className="font-medium pl-6">
+                      <div className="flex flex-col">
+                        <span>{item.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{item.id}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal border-border/50 bg-background/50">
+                        {item.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={
+                          item.status === "Operational"
+                            ? "bg-chart-2/15 text-chart-2 border-chart-2/20"
+                            : item.status === "Under Repair"
+                              ? "bg-primary/15 text-primary border-primary/20"
+                              : item.status === "Scrapped"
+                                ? "bg-destructive/15 text-destructive border-destructive/20"
+                                : "bg-muted/50 text-muted-foreground"
+                        }
+                      >
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">{item.technician}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.company}</TableCell>
+                    <TableCell className="text-right pr-6">
+                      {/* <CHANGE> Smart button showing maintenance requests count */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 relative"
+                        onClick={() => handleViewMaintenance(item.id)}
+                      >
+                        <Wrench className="h-3.5 w-3.5" />
+                        <span>Maintenance</span>
+                        {openCount > 0 && (
+                          <Badge className="ml-1 h-5 min-w-5 bg-primary text-primary-foreground border-none px-1.5">
+                            {openCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* <CHANGE> Dialog to show maintenance history for selected equipment */}
+      <Dialog open={isMaintenanceDialogOpen} onOpenChange={setIsMaintenanceDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-primary" />
+              Maintenance History
+            </DialogTitle>
+            <DialogDescription>
+              {selectedEquipmentData
+                ? `All maintenance requests for ${selectedEquipmentData.name} (${selectedEquipmentData.id})`
+                : "Equipment maintenance history"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {selectedRequests.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No maintenance requests found for this equipment.</p>
+              </div>
+            ) : (
+              selectedRequests.map((req) => (
+                <Card key={req.id} className="border-border/50 bg-card/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{req.title}</p>
+                          <Badge
+                            variant="outline"
+                            className={
+                              req.priority === "High"
+                                ? "bg-destructive/10 text-destructive border-destructive/20 text-[10px]"
+                                : req.priority === "Medium"
+                                  ? "bg-chart-2/10 text-chart-2 border-chart-2/20 text-[10px]"
+                                  : "bg-muted/50 text-muted-foreground border-transparent text-[10px]"
+                            }
+                          >
+                            {req.priority}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Request ID: {req.id}</p>
+                      </div>
+                      <Badge
+                        className={
+                          req.stage === "new"
+                            ? "bg-primary/10 text-primary border-primary/20"
+                            : req.stage === "in-progress"
+                              ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
+                              : req.stage === "repaired"
+                                ? "bg-chart-2/10 text-chart-2 border-chart-2/20"
+                                : "bg-destructive/10 text-destructive border-destructive/20"
+                        }
+                      >
+                        {req.stage === "in-progress" ? "In Progress" : req.stage.charAt(0).toUpperCase() + req.stage.slice(1)}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
