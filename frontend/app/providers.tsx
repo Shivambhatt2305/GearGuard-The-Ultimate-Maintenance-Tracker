@@ -13,7 +13,7 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<{ success: boolean; error?: string }>
   signup: (data: SignupRequest) => Promise<{ success: boolean; error?: string }>
   logout: () => void
-}
+} 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 

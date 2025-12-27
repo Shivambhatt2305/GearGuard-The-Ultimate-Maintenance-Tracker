@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token
-from app.models.user import User
+from app.models.user import User, Credential
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.schemas.response import success_response, error_response
 
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     """
     Sign up a new user
+    Creates entries in both credentials and users tables
     Returns: {status, code, message, data: {access_token, token_type, user}}
     """
     try:
@@ -25,19 +26,31 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
                 code=status.HTTP_400_BAD_REQUEST
             )
         
-        # Hash password and create user
+        # Hash password
         hashed_password = hash_password(user_data.password)
-        new_user = User(
+        
+        # Create credential entry
+        credential = Credential(
             email=user_data.email,
-            hashed_password=hashed_password
+            hash_pass=hashed_password
         )
         
+        # Create user entry
+        new_user = User(
+            full_name=user_data.full_name,
+            email=user_data.email,
+            user_role=user_data.user_role or "Employee",
+            department=user_data.department,
+            avatar_url=user_data.avatar_url
+        )
+        
+        db.add(credential)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
         
         # Create access token
-        access_token = create_access_token(data={"sub": str(new_user.id)})
+        access_token = create_access_token(data={"sub": user_data.email})
         
         return success_response(
             data={
@@ -48,7 +61,7 @@ def signup(user_data: UserCreate, db: Session = Depends(get_db)):
             message="User registered successfully",
             code=status.HTTP_201_CREATED
         )
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
         return error_response(
             message="Email already exists",
@@ -69,24 +82,33 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     Returns: {status, code, message, data: {access_token, token_type, user}}
     """
     try:
-        # Find user by email
-        user = db.query(User).filter(User.email == user_data.email).first()
+        # Find credential by email
+        credential = db.query(Credential).filter(Credential.email == user_data.email).first()
         
-        if not user:
+        if not credential:
             return error_response(
                 message="Invalid email or password",
                 code=status.HTTP_401_UNAUTHORIZED
             )
         
         # Verify password
-        if not verify_password(user_data.password, user.hashed_password):
+        if not verify_password(user_data.password, credential.hash_pass):
             return error_response(
                 message="Invalid email or password",
                 code=status.HTTP_401_UNAUTHORIZED
             )
         
-        # Create access token
-        access_token = create_access_token(data={"sub": str(user.id)})
+        # Get user details
+        user = db.query(User).filter(User.email == user_data.email).first()
+        
+        if not user:
+            return error_response(
+                message="User profile not found",
+                code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Create access token using email as subject
+        access_token = create_access_token(data={"sub": user_data.email})
         
         return success_response(
             data={
@@ -122,9 +144,9 @@ def get_current_user(token: str = None, db: Session = Depends(get_db)):
         
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-            user_id = payload.get("sub")
+            email = payload.get("sub")
             
-            if not user_id:
+            if not email:
                 return error_response(
                     message="Invalid token",
                     code=status.HTTP_401_UNAUTHORIZED
@@ -140,7 +162,7 @@ def get_current_user(token: str = None, db: Session = Depends(get_db)):
                 code=status.HTTP_401_UNAUTHORIZED
             )
         
-        user = db.query(User).filter(User.id == int(user_id)).first()
+        user = db.query(User).filter(User.email == email).first()
         
         if not user:
             return error_response(

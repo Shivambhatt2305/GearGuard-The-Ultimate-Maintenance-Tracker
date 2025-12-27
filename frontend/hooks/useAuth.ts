@@ -17,7 +17,7 @@ export function useAuth() {
   const router = useRouter()
   const [state, setState] = useState<AuthState>({
     user: null,
-    isLoading: false,
+    isLoading: true,
     error: null,
     isAuthenticated: false,
   })
@@ -25,17 +25,30 @@ export function useAuth() {
   // Check if user is authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
-      if (apiClient.isAuthenticated()) {
-        const response = await apiClient.getCurrentUser()
-        if (response.status === "success" && response.data) {
-          setState({
-            user: response.data,
-            isLoading: false,
-            error: null,
-            isAuthenticated: true,
-          })
+      try {
+        if (apiClient.isAuthenticated()) {
+          const response = await apiClient.getCurrentUser()
+          if (response.status === "success" && response.data) {
+            setState({
+              user: response.data,
+              isLoading: false,
+              error: null,
+              isAuthenticated: true,
+            })
+            return
+          }
         }
+      } catch (error) {
+        console.error("Auth check failed:", error)
       }
+
+      // If we get here, we're not authenticated or encryption failed
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        isAuthenticated: false,
+        user: null
+      }))
     }
     checkAuth()
   }, [])

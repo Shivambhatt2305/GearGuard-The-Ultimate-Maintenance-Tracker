@@ -1,29 +1,12 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { ShieldCheck } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LoginForm } from "@/components/auth/login-form"
+import { SignupForm } from "@/components/auth/signup-form"
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    // Simulate auth
-    setTimeout(() => {
-      router.push("/")
-      setIsLoading(false)
-    }, 1000)
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-[400px] space-y-6">
@@ -42,56 +25,12 @@ export default function LoginPage() {
           </TabsList>
           <TabsContent value="login">
             <Card>
-              <form onSubmit={handleAuth}>
-                <CardHeader>
-                  <CardTitle>Welcome Back</CardTitle>
-                  <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="admin@gearguard.com" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </CardFooter>
-              </form>
+              <LoginForm />
             </Card>
           </TabsContent>
           <TabsContent value="register">
             <Card>
-              <form onSubmit={handleAuth}>
-                <CardHeader>
-                  <CardTitle>Create Account</CardTitle>
-                  <CardDescription>Register your company for enterprise tracking.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" placeholder="John Doe" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email</Label>
-                    <Input id="reg-email" type="email" placeholder="john@company.com" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-password">Password</Label>
-                    <Input id="reg-password" type="password" required />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Register"}
-                  </Button>
-                </CardFooter>
-              </form>
+              <SignupForm />
             </Card>
           </TabsContent>
         </Tabs>
