@@ -14,6 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 // <CHANGE> Added maintenance tasks data structure to track requests per equipment
 const maintenanceRequests = [
@@ -104,6 +107,12 @@ export default function EquipmentPage() {
 function EquipmentContent() {
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null)
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [filterCategory, setFilterCategory] = useState<string>("")
+  const [filterStatus, setFilterStatus] = useState<string>("")
+  const [filterTechnician, setFilterTechnician] = useState<string>("")
+  const [filterCompany, setFilterCompany] = useState<string>("")
 
   // <CHANGE> Function to get open maintenance requests count for equipment
   const getOpenRequestsCount = (equipmentId: string) => {
@@ -125,6 +134,35 @@ function EquipmentContent() {
   const selectedEquipmentData = equipment.find((eq) => eq.id === selectedEquipment)
   const selectedRequests = selectedEquipment ? getEquipmentRequests(selectedEquipment) : []
 
+  // Derived filter lists
+  const categoryOptions = Array.from(new Set(equipment.map((e) => e.category)))
+  const statusOptions = Array.from(new Set(equipment.map((e) => e.status)))
+  const technicianOptions = Array.from(new Set(equipment.map((e) => e.technician)))
+  const companyOptions = Array.from(new Set(equipment.map((e) => e.company)))
+
+  const clearFilters = () => {
+    setFilterCategory("")
+    setFilterStatus("")
+    setFilterTechnician("")
+    setFilterCompany("")
+  }
+
+  const filteredEquipment = equipment.filter((item) => {
+    const matchesSearch = searchQuery
+      ? [item.name, item.id, item.category, item.technician, item.company]
+          .join(" ")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      : true
+
+    const matchesCategory = filterCategory ? item.category === filterCategory : true
+    const matchesStatus = filterStatus ? item.status === filterStatus : true
+    const matchesTechnician = filterTechnician ? item.technician === filterTechnician : true
+    const matchesCompany = filterCompany ? item.company === filterCompany : true
+
+    return matchesSearch && matchesCategory && matchesStatus && matchesTechnician && matchesCompany
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -142,10 +180,20 @@ function EquipmentContent() {
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
           <div className="relative w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search assets..." className="pl-9 bg-muted/30 border-none" />
+            <Input
+              placeholder="Search assets..."
+              className="pl-9 bg-muted/30 border-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-transparent"
+              onClick={() => setIsFilterOpen(true)}
+            >
               <Filter className="h-4 w-4" />
               Filter
             </Button>
@@ -164,7 +212,7 @@ function EquipmentContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {equipment.map((item) => {
+              {filteredEquipment.map((item) => {
                 const openCount = getOpenRequestsCount(item.id)
                 return (
                   <TableRow key={item.id} className="border-border/50 group transition-colors hover:bg-accent/20">
@@ -220,6 +268,80 @@ function EquipmentContent() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Filters Sheet */}
+      <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <SheetContent side="right" className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Filter Equipment</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 px-4">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Technician</Label>
+              <Select value={filterTechnician} onValueChange={setFilterTechnician}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All technicians" />
+                </SelectTrigger>
+                <SelectContent>
+                  {technicianOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Company</Label>
+              <Select value={filterCompany} onValueChange={setFilterCompany}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All companies" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyOptions.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <SheetFooter>
+            <div className="flex items-center justify-between gap-2">
+              <Button variant="ghost" onClick={clearFilters} className="bg-transparent">Clear</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="bg-transparent" onClick={() => setIsFilterOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setIsFilterOpen(false)}>Apply</Button>
+              </div>
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* <CHANGE> Dialog to show maintenance history for selected equipment */}
       <Dialog open={isMaintenanceDialogOpen} onOpenChange={setIsMaintenanceDialogOpen}>
