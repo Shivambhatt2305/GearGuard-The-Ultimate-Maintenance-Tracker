@@ -74,6 +74,15 @@ uvicorn app.main:app --reload --port 8000
 # API available at http://localhost:8000
 ```
 
+Environment variables
+- use below environment variables in .env file
+
+```bash
+DATABASE_URL="postgresql://postgres:123456@localhost/gearguard_db"
+SECRET_KEY=ca91b132-4fdc-49bb-9f51-05b2b4205949
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
 Database and migrations
 
 - See `backend/POSTGRES_SETUP.md` for PostgreSQL setup and connection details.
