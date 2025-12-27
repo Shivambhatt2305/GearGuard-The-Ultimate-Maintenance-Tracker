@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 export default function SettingsPage() {
   const [name, setName] = React.useState("John Doe")
@@ -17,6 +18,7 @@ export default function SettingsPage() {
   const [notifyEmail, setNotifyEmail] = React.useState(true)
   const [notifyDesktop, setNotifyDesktop] = React.useState(true)
   const [notifyCritical, setNotifyCritical] = React.useState(true)
+  const router = useRouter()
 
   const handleSave = () => {
     // For now, just simulate a save action
@@ -139,6 +141,32 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-end">
             <Button variant="outline" size="sm" className="bg-transparent" onClick={handleSave}>Update Preferences</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 bg-card/30">
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>Sign out of your account</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">Sign out</p>
+            <p className="text-xs text-muted-foreground">End your session and return to the login screen.</p>
+          </div>
+          <div>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (typeof window !== "undefined" && confirm("Are you sure you want to sign out?")) {
+                  localStorage.removeItem("isAuthenticated")
+                  router.replace("/login")
+                }
+              }}
+            >
+              Sign out
+            </Button>
           </div>
         </CardContent>
       </Card>

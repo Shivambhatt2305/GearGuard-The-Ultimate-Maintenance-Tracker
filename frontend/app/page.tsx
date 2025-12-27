@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table"
 import { Plus, ArrowUpRight, ArrowDownRight, Activity, Box, ClipboardList, AlertCircle, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { INITIAL_TEAMS } from "@/lib/data"
 
 const recentMaintenanceReports = [
@@ -44,7 +45,23 @@ const recentMaintenanceReports = [
 
 export default function DashboardPage() {
   const router = useRouter()
+  const [checked, setChecked] = useState(false)
+  const [isAuth, setIsAuth] = useState(false)
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" && localStorage.getItem("isAuthenticated")
+    if (!token) {
+      router.replace("/login")
+    } else {
+      setIsAuth(true)
+    }
+    setChecked(true)
+  }, [router])
+
   const totalActiveMembers = INITIAL_TEAMS.flatMap(t => t.members).filter(m => m.status === "Active").length
+
+  if (!checked) return null
+  if (!isAuth) return null
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
