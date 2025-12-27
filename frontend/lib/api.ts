@@ -96,6 +96,34 @@ class ApiClient {
   }
 
   async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+    // Static Login (Bypass Backend)
+    if (data.email === "abc@gmail.com" && data.password === "123456") {
+      const mockUser: User = {
+        user_id: 999,
+        full_name: "Demo User",
+        email: "abc@gmail.com",
+        user_role: "Admin",
+        department: "General",
+        created_at: new Date().toISOString()
+      }
+
+      const response: ApiResponse<AuthResponse> = {
+        status: "success",
+        code: 200,
+        message: "Login successful",
+        data: {
+          access_token: "static_access_token_123456",
+          token_type: "bearer",
+          user: mockUser
+        }
+      }
+
+      if (response.data?.access_token) {
+        this.setToken(response.data.access_token)
+      }
+      return response
+    }
+
     const response = await this.post<AuthResponse>("/api/v1/users/login", data)
     if (response.status === "success" && response.data?.access_token) {
       this.setToken(response.data.access_token)
@@ -113,6 +141,24 @@ class ApiClient {
         data: null,
       }
     }
+
+    // Return static user if using static token
+    if (token === "static_access_token_123456") {
+      return {
+        status: "success",
+        code: 200,
+        message: "User retrieved successfully",
+        data: {
+          user_id: 999,
+          full_name: "Demo User",
+          email: "abc@gmail.com",
+          user_role: "Admin",
+          department: "General",
+          created_at: new Date().toISOString()
+        }
+      }
+    }
+
     return this.get<User>("/api/v1/users/me")
   }
 
