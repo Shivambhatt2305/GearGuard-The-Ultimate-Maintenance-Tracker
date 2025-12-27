@@ -13,38 +13,37 @@ import {
 } from "@/components/ui/table"
 import { Plus, ArrowUpRight, ArrowDownRight, Activity, Box, ClipboardList, AlertCircle, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { INITIAL_TEAMS } from "@/lib/data"
+import { 
+  INITIAL_TEAMS, 
+  EQUIPMENT_DATABASE, 
+  MAINTENANCE_LOGS, 
+  SPARE_PARTS,
+  NOTIFICATIONS,
+  getLowStockParts,
+  getUnreadNotifications,
+  getOverdueMaintenance,
+  getUpcomingMaintenance 
+} from "@/lib/data"
 
-const recentMaintenanceReports = [
-  {
-    id: 1,
-    subject: "Test activity",
-    equipment: "Mitchell Admin",
-    category: "Ava Foster",
-    staff: "computer",
-    status: "New",
-  },
-  {
-    id: 2,
-    subject: "Scheduled inspection",
-    equipment: "CNC Machine X1",
-    category: "Production Equipment",
-    staff: "John Smith",
-    status: "In Progress",
-  },
-  {
-    id: 3,
-    subject: "HVAC maintenance",
-    equipment: "HVAC Unit PM-04",
-    category: "HVAC Systems",
-    staff: "Max Foster",
-    status: "Completed",
-  },
-]
+const recentMaintenanceReports = MAINTENANCE_LOGS.slice(0, 5).map(log => ({
+  id: log.id,
+  subject: log.workDescription.substring(0, 50) + "...",
+  equipment: log.assetName,
+  category: log.maintenanceType,
+  staff: log.technicianName,
+  status: log.status,
+  date: log.maintenanceDate,
+}))
 
 export default function DashboardPage() {
   const router = useRouter()
   const totalActiveMembers = INITIAL_TEAMS.flatMap(t => t.members).filter(m => m.status === "Active").length
+  const criticalEquipment = EQUIPMENT_DATABASE.filter(eq => eq.status === "Under Repair" || eq.status === "Maintenance").length
+  const totalMaintenanceCost = MAINTENANCE_LOGS.filter(l => l.status === "Completed").reduce((sum, log) => sum + log.totalCost, 0)
+  const lowStockCount = getLowStockParts().length
+  const unreadNotifications = getUnreadNotifications().length
+  const overdueCount = getOverdueMaintenance().length
+  const upcomingCount = getUpcomingMaintenance().length
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -70,8 +69,8 @@ export default function DashboardPage() {
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5 Units</div>
-            <p className="mt-2 text-xs text-destructive font-semibold">(Health {"<"} 30%)</p>
+            <div className="text-2xl font-bold">{criticalEquipment} Units</div>
+            <p className="mt-2 text-xs text-destructive font-semibold">(Under Repair/Maintenance)</p>
             <Button 
               variant="link" 
               size="sm" 
@@ -84,26 +83,26 @@ export default function DashboardPage() {
         </Card>
         <Card className="bg-primary/5 backdrop-blur-sm border-primary/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Technician Load</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Technicians</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">85% Utilized</div>
-            <p className="mt-2 text-xs text-primary font-semibold">(Assign Carefully)</p>
+            <div className="text-2xl font-bold">{totalActiveMembers}</div>
+            <p className="mt-2 text-xs text-primary font-semibold">Available for assignments</p>
             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{totalActiveMembers} active members</span>
+              <span>Across {INITIAL_TEAMS.length} teams</span>
             </div>
           </CardContent>
         </Card>
         <Card className="bg-chart-2/5 backdrop-blur-sm border-chart-2/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Open Requests</CardTitle>
+            <CardTitle className="text-sm font-medium">Maintenance Status</CardTitle>
             <ClipboardList className="h-4 w-4 text-chart-2" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12 Pending</div>
+            <div className="text-2xl font-bold">{overdueCount} Overdue</div>
             <p className="mt-1 text-xs">
-              <span className="text-destructive font-semibold">3 Overdue</span>
+              <span className="text-chart-2 font-semibold">{upcomingCount} Upcoming</span>
             </p>
             <Button 
               variant="link" 
@@ -121,8 +120,10 @@ export default function DashboardPage() {
             <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">142 Units</div>
-            <p className="mt-1 text-xs text-muted-foreground">98% Online tracking active</p>
+            <div className="text-2xl font-bold">{EQUIPMENT_DATABASE.length} Units</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cost: ${totalMaintenanceCost.toLocaleString()}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -159,18 +160,18 @@ export default function DashboardPage() {
                   <TableCell>
                     <Badge 
                       variant={
-                        report.status === "New" 
+                        report.status === "Pending" 
                           ? "secondary" 
                           : report.status === "In Progress" 
                           ? "default" 
                           : "outline"
                       }
                       className={
-                        report.status === "New" 
+                        report.status === "Pending" 
                           ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30" 
                           : report.status === "In Progress"
                           ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                          : ""
+                          : "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30"
                       }
                     >
                       {report.status}
@@ -180,6 +181,42 @@ export default function DashboardPage() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Notifications & Alerts */}
+      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Notifications & Alerts</CardTitle>
+            <CardDescription>System alerts and important updates</CardDescription>
+          </div>
+          <Badge variant="destructive">{unreadNotifications} Unread</Badge>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {NOTIFICATIONS.filter(n => !n.isRead).slice(0, 5).map((notification) => (
+              <div key={notification.id} className="flex items-start gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors">
+                <div className={`p-2 rounded-full ${
+                  notification.priority === "High" 
+                    ? "bg-destructive/10 text-destructive" 
+                    : notification.priority === "Medium"
+                    ? "bg-yellow-500/10 text-yellow-600"
+                    : "bg-primary/10 text-primary"
+                }`}>
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-semibold">{notification.title}</p>
+                  <p className="text-xs text-muted-foreground">{notification.message}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(notification.createdAt).toLocaleDateString()}</p>
+                </div>
+                <Badge variant={notification.priority === "High" ? "destructive" : "secondary"} className="text-xs">
+                  {notification.priority}
+                </Badge>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

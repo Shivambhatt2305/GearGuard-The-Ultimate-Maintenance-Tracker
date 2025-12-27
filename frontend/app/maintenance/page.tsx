@@ -286,7 +286,7 @@ function MaintenanceKanbanContent() {
   }
 
   const downloadReport = () => {
-    const data = JSON.stringify(tasks, null, 2)
+    const data = JSON.stringify(workOrders, null, 2)
     const blob = new Blob([data], { type: "application/json" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
