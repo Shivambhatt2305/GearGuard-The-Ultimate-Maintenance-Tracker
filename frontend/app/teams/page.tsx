@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
 // Team member type
 type TeamMember = {
   id: string
@@ -33,7 +31,6 @@ type TeamMember = {
   status: "Active" | "Inactive"
   teamId: string
 }
-
 // Team type
 type Team = {
   id: string
@@ -41,7 +38,6 @@ type Team = {
   company: string
   members: TeamMember[]
 }
-
 // <CHANGE> Added maintenance requests data to track team workload
 const maintenanceRequests = [
   { id: "1", teamId: "team-1", title: "AC Unit Leakage", stage: "new", priority: "High" },
@@ -53,7 +49,6 @@ const maintenanceRequests = [
   { id: "7", teamId: "team-2", title: "Server Maintenance", stage: "in-progress", priority: "High" },
   { id: "8", teamId: "team-1", title: "HVAC Filter Change", stage: "new", priority: "Low" },
 ]
-
 const initialTeams: Team[] = [
   {
     id: "team-1",
@@ -86,7 +81,6 @@ const initialTeams: Team[] = [
     ],
   },
 ]
-
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>(initialTeams)
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
@@ -94,35 +88,29 @@ export default function TeamsPage() {
   const [isAddTeamDialogOpen, setIsAddTeamDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
   const [isViewMembersDialogOpen, setIsViewMembersDialogOpen] = useState(false)
-
   // Form states for new team
   const [newTeamName, setNewTeamName] = useState("")
   const [newTeamCompany, setNewTeamCompany] = useState("")
-
   // Form states for new member
   const [newMemberName, setNewMemberName] = useState("")
   const [newMemberLoginId, setNewMemberLoginId] = useState("")
   const [newMemberRole, setNewMemberRole] = useState<"Technician" | "Team Lead" | "Supervisor">("Technician")
   const [newMemberStatus, setNewMemberStatus] = useState<"Active" | "Inactive">("Active")
   const [newMemberTeamId, setNewMemberTeamId] = useState("")
-
   // <CHANGE> Function to get active maintenance requests count for team
   const getActiveRequestsCount = (teamId: string) => {
     return maintenanceRequests.filter(
       (req) => req.teamId === teamId && req.stage !== "repaired" && req.stage !== "scrap"
     ).length
   }
-
   // <CHANGE> Function to get all requests for selected team
   const getTeamRequests = (teamId: string) => {
     return maintenanceRequests.filter((req) => req.teamId === teamId)
   }
-
   const handleViewRequests = (teamId: string) => {
     setSelectedTeam(teamId)
     setIsRequestsDialogOpen(true)
   }
-
   const handleViewMembers = (teamId: string) => {
     setSelectedTeam(teamId)
     setIsViewMembersDialogOpen(true)
@@ -130,23 +118,19 @@ export default function TeamsPage() {
 
   const handleAddTeam = () => {
     if (!newTeamName.trim() || !newTeamCompany.trim()) return
-
     const newTeam: Team = {
       id: `team-${Date.now()}`,
       name: newTeamName,
       company: newTeamCompany,
       members: [],
     }
-
     setTeams([...teams, newTeam])
     setNewTeamName("")
     setNewTeamCompany("")
     setIsAddTeamDialogOpen(false)
   }
-
   const handleAddMember = () => {
     if (!newMemberName.trim() || !newMemberLoginId.trim() || !newMemberTeamId) return
-
     const newMember: TeamMember = {
       id: `m-${Date.now()}`,
       name: newMemberName,
@@ -155,13 +139,11 @@ export default function TeamsPage() {
       status: newMemberStatus,
       teamId: newMemberTeamId,
     }
-
     setTeams(
       teams.map((team) =>
         team.id === newMemberTeamId ? { ...team, members: [...team.members, newMember] } : team
       )
     )
-
     // Reset form
     setNewMemberName("")
     setNewMemberLoginId("")
@@ -170,7 +152,6 @@ export default function TeamsPage() {
     setNewMemberTeamId("")
     setIsAddMemberDialogOpen(false)
   }
-
   const handleDeleteMember = (teamId: string, memberId: string) => {
     setTeams(
       teams.map((team) =>
@@ -180,7 +161,6 @@ export default function TeamsPage() {
       )
     )
   }
-
   const handleToggleMemberStatus = (teamId: string, memberId: string) => {
     setTeams(
       teams.map((team) =>
